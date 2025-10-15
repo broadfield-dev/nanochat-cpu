@@ -5,9 +5,9 @@ set -e
 # It trains a very small model for a few steps to demonstrate functionality.
 # It will be very slow.
 
-# Set up directories inside the current working directory, which is always writable.
+# Use /tmp, the universally writable directory in Linux environments.
 export OMP_NUM_THREADS=1
-export NANOCHAT_BASE_DIR="./nanochat_cache"
+export NANOCHAT_BASE_DIR="/tmp/nanochat"
 mkdir -p $NANOCHAT_BASE_DIR
 echo "Using base directory: $NANOCHAT_BASE_DIR"
 
