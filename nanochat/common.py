@@ -88,35 +88,39 @@ def get_dist_info():
         return True, ddp_rank, ddp_local_rank, ddp_world_size
     else:
         return False, 0, 0, 1
-
+#updated for CPU
 def compute_init():
     """Basic initialization that we keep doing over and over, so make common."""
 
-    # CUDA is currently required
-    assert torch.cuda.is_available(), "CUDA is needed for a distributed run atm"
+    # We will prefer CUDA if available, but fall back to CPU
+    is_cuda_available = torch.cuda.is_available()
+    default_device_str = "cuda" if is_cuda_available else "cpu"
 
     # Reproducibility
     torch.manual_seed(42)
-    torch.cuda.manual_seed(42)
-    # skipping full reproducibility for now, possibly investigate slowdown later
-    # torch.use_deterministic_algorithms(True)
-    # torch.backends.cudnn.deterministic = True
-    # torch.backends.cudnn.benchmark = False
+    if is_cuda_available:
+        torch.cuda.manual_seed(42)
 
     # Precision
-    torch.set_float32_matmul_precision("high") # uses tf32 instead of fp32 for matmuls
+    if default_device_str == "cuda":
+        torch.set_float32_matmul_precision("high") # uses tf32 instead of fp32 for matmuls
 
     # Distributed setup: Distributed Data Parallel (DDP), optional
     ddp, ddp_rank, ddp_local_rank, ddp_world_size = get_dist_info()
     if ddp:
+        if not is_cuda_available:
+            # For this guide, we assume DDP is not used on CPU.
+            # A 'gloo' backend would be needed for multi-CPU DDP.
+            raise RuntimeError("Distributed training on CPU is not configured in this setup.")
         device = torch.device("cuda", ddp_local_rank)
         torch.cuda.set_device(device) # make "cuda" default to this device
         dist.init_process_group(backend="nccl", device_id=device)
         dist.barrier()
     else:
-        device = torch.device("cuda")
+        device = torch.device(default_device_str)
 
     if ddp_rank == 0:
+        logger.info(f"Using device: {device}")
         logger.info(f"Distributed world size: {ddp_world_size}")
 
     return ddp, ddp_rank, ddp_local_rank, ddp_world_size, device
