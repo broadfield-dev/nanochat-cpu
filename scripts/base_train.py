@@ -7,6 +7,8 @@ or distributed as:
 
 torchrun --nproc_per_node=8 base_train.py
 """
+# update for CPU
+import contextlib
 
 import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
@@ -57,10 +59,14 @@ user_config = {k: globals()[k] for k in config_keys} # will be useful for loggin
 # -----------------------------------------------------------------------------
 
 # Compute init
+# udpated for CPU
 ddp, ddp_rank, ddp_local_rank, ddp_world_size, device = compute_init()
 master_process = ddp_rank == 0 # this process will do logging, checkpointing etc.
-autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16)
-
+autocast_ctx = (
+    torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16)
+    if device.type == "cuda"
+    else contextlib.nullcontext()
+)
 # wandb logging init
 use_dummy_wandb = run == "dummy" or not master_process
 wandb_run = DummyWandb() if use_dummy_wandb else wandb.init(project="nanochat", name=run, config=user_config)
@@ -133,8 +139,9 @@ adamw_optimizer, muon_optimizer = optimizers
 # Initialize the DataLoaders for train/val
 base_dir = get_base_dir()
 tokens_dir = os.path.join(base_dir, "tokenized_data")
-train_loader = tokenizing_distributed_data_loader(device_batch_size, max_seq_len, split="train")
-build_val_loader = lambda: tokenizing_distributed_data_loader(device_batch_size, max_seq_len, split="val")
+# updated for CPU
+train_loader = tokenizing_distributed_data_loader(device_batch_size, max_seq_len, "train", device)
+build_val_loader = lambda: tokenizing_distributed_data_loader(device_batch_size, max_seq_len, "val", device)
 x, y = next(train_loader) # kick off load of the very first batch of data
 
 # -----------------------------------------------------------------------------
