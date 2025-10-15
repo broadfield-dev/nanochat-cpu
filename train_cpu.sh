@@ -23,7 +23,7 @@ python -m nanochat.report reset
 
 # Download a small amount of data (8 shards = ~800MB)
 echo "Downloading dataset (8 shards)..."
-python -m nanochat.dataset -n 256
+python -m nanochat.dataset -n 16
 
 # Train tokenizer on a small subset of data (100M chars) and a smaller vocab
 echo "Training tokenizer..."
