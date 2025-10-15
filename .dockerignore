@@ -1,0 +1,16 @@
+# Ignore everything by default
+*
+!*.*
+!.*
+
+# But then un-ignore the specific files and directories we need
+!nanochat/
+!scripts/
+!rustbpe/
+!tasks/
+!tests/
+!pyproject.toml
+!README.md
+!speedrun.sh
+!train_cpu.sh
+!Dockerfile
