@@ -5,9 +5,9 @@ set -e
 # It trains a very small model for a few steps to demonstrate functionality.
 # It will be very slow.
 
-# Set up directories in the user's home directory, which is always writable.
+# Set up directories inside the current working directory, which is always writable.
 export OMP_NUM_THREADS=1
-export NANOCHAT_BASE_DIR="$HOME/nanochat"
+export NANOCHAT_BASE_DIR="./nanochat_cache"
 mkdir -p $NANOCHAT_BASE_DIR
 echo "Using base directory: $NANOCHAT_BASE_DIR"
 
