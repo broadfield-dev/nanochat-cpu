@@ -13,15 +13,13 @@ python -m nanochat.report reset
 # --- Tokenizer ---
 
 # Download the absolute minimum data needed (16 shards).
-echo "Downloading minimal dataset (16 shards)..."
-python -m nanochat.dataset -n 16
+echo "Downloading minimal dataset (8 shards)..."
+python -m nanochat.dataset -n 8
 
 # Train tokenizer.
 echo "Training tokenizer..."
-# FIX: Changed from `python -m scripts.tok_train` to direct path execution
 python scripts/tok_train.py --max_chars=100000000 --vocab_size=8192
 echo "Evaluating tokenizer..."
-# FIX: Changed from `python -m scripts.tok_eval` to direct path execution
 python scripts/tok_eval.py
 
 # --- CLEANUP 1: Remove raw dataset files now that tokenizer is trained ---
@@ -42,7 +40,6 @@ fi
 
 # Pretrain a tiny d4 model for 20 steps
 echo "Starting base model pre-training (20 steps)..."
-# FIX: Changed from `python -m scripts.base_train` to direct path execution
 python scripts/base_train.py \
     --depth=4 \
     --device_batch_size=4 \
@@ -56,7 +53,6 @@ python scripts/base_train.py \
 # The base_loss script will fail because we deleted the parquet files,
 # so we will skip it. The goal is just to complete the run.
 echo "Evaluating base model CORE metric..."
-# FIX: Changed from `python -m scripts.base_eval` to direct path execution
 python scripts/base_eval.py
 
 # --- Final Report ---
